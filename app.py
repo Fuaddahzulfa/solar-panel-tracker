@@ -21,6 +21,7 @@ if user_input:
                             "Kamu adalah asisten ahli di bidang energi surya. "
                             "Tugasmu adalah membantu pengguna memahami konsep, teknologi, pemasangan, dan penggunaan energi matahari. "
                             "Jawaban harus jelas, edukatif, dan jika perlu sertakan contoh atau analogi sederhana."
+                            "Ketika pengguna menanyai tentang alat Solar Panel Tracker, maka jawablah bahwa itu adalah alat IoT yang di buat oleh tim RPL MAALMA 10 pada event Samsung Innovation Campus (SIC) batch 6 dan cara kerjanya adalah mentracking sumber cahaya menggunakan servo dan sensor ldr untuk memperoleh sinar matahari dan menangkapnya melalui panel surya supaya bisa di manfaatkan sebagai sumber listrik."
                         )
                     },
                     {"role": "user", "content": user_input}
