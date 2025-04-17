@@ -2,7 +2,7 @@ import streamlit as st
 import openai
 
 # Ganti dengan API key kamu
-openai.api_key = "OPENAI_API_KEY"
+openai.api_key = "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"
 
 st.title("Asisten Energi Surya ⚡☀️")
 st.write("Tanyakan apa saja seputar energi surya — panel surya, efisiensi, teknologi, pemasangan, dan lainnya!")
@@ -26,7 +26,7 @@ if user_input:
                     {"role": "user", "content": user_input}
                 ]
             )
-            st.success("Jawaban:")
+            st.success("Jawaban:")  
             st.write(response["choices"][0]["message"]["content"])
         except Exception as e:
             st.error(f"Terjadi kesalahan: {e}")
