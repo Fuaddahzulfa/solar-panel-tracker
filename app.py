@@ -68,6 +68,7 @@ if "history" not in st.session_state:
 
 
 st.title("Asisten Energi Surya ⚡☀️")
+st.write("Tabel Visualisasi Data Solar Panel Tracker:")
 
 if st.button("Append Data"):
     last_data = api.get()
@@ -82,7 +83,7 @@ if not st.session_state.data.empty:
                                     min_value=0, 
                                     max_value=len(st.session_state.data)-1, 
                                     step=1)
-    if st.button("Hapus Baris"):
+    if st.button("Delete"):
         st.session_state.data.drop(index=index_to_delete, inplace=True)
         st.session_state.data.reset_index(drop=True, inplace=True)
 
