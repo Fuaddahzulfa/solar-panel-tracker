@@ -16,6 +16,7 @@ const char* DEVICE_LABEL = "solar-panel-tracker"; // nama device di ubidots
 
 const char* VARIABLE_SERVO_H = "servo_h";
 const char* VARIABLE_SERVO_V = "servo_v";
+const char* VARIABLE_LDR = "ldr";
 
 // Pin LDR
 int ldrAtas = 33;
@@ -36,6 +37,8 @@ int posisiServo2 = 90;
 WiFiClient wifiClient;
 PubSubClient client(wifiClient);
 
+int update = 0;
+
 void reconnect() {
   // Loop sampai koneksi berhasil
   while (!client.connected()) {
@@ -52,23 +55,26 @@ void reconnect() {
   }
 }
 
-void updateServoPosition() {
+void updateDashboard(float sensor_mean) {
   // Gerakkan servo ke posisi yang sesuai
   servo1.write(posisiServo1);
   servo2.write(posisiServo2);
 
-  char payload[100];
-  sprintf(payload, "{\"%s\": %d, \"%s\": %d}", VARIABLE_SERVO_H, posisiServo2, VARIABLE_SERVO_V, posisiServo1);
+  if (update == 0){
+    char payload[100];
+    sprintf(payload, "{\"%s\": %d, \"%s\": %d}, \"%s\": %d", VARIABLE_SERVO_H, posisiServo2, VARIABLE_SERVO_V, posisiServo1, VARIABLE_LDR, sensor_mean);
 
 
-  // Mengirimkan data ke Ubidots
-  String topic = "/v1.6/devices/" + String(DEVICE_LABEL);
-  client.publish(topic.c_str(), payload);
+    // Mengirimkan data ke Ubidots
+    String topic = "/v1.6/devices/" + String(DEVICE_LABEL);
+    client.publish(topic.c_str(), payload);
+    update = 30;
+  } else update--;
 }
 
 
 void setup() {
-  Serial.begin(115200);
+  Serial.begin( 115200);
   servo1.attach(pinServo1);
   servo2.attach(pinServo2);
   servo1.write(posisiServo1);
@@ -141,7 +147,7 @@ void loop() {
   posisiServo1 = constrain(posisiServo1, 0, 180);
   posisiServo2 = constrain(posisiServo2, 0, 180);
 
-  updateServoPosition();
+  updateDashboard((nilaiKiri+nilaiKanan+nilaiAtas+nilaiBawah)/2);
 
   delay(100);  // Smooth delay
 }
