@@ -2,7 +2,6 @@
 #include <PubSubClient.h>
 #include <ESP32Servo.h>
 
-// Ganti dengan kredensial WiFi kamu
 const char* ssid = "Redmi Note 5";
 const char* password = "1sampek8";
 
@@ -10,9 +9,8 @@ const char* password = "1sampek8";
 const char* mqtt_server = "industrial.api.ubidots.com";
 const int mqtt_port = 1883;
 
-// Ganti dengan TOKEN dari akun Ubidots kamu
 const char* TOKEN = "BBUS-VKMrY9nBvYdn5QpmgN2jsZQ6beUh3E"; 
-const char* DEVICE_LABEL = "solar-panel-tracker"; // nama device di ubidots
+const char* DEVICE_LABEL = "solar-panel-tracker";
 
 const char* VARIABLE_SERVO_H = "servo_h";
 const char* VARIABLE_SERVO_V = "servo_v";
@@ -40,7 +38,6 @@ PubSubClient client(wifiClient);
 int update = 0;
 
 void reconnect() {
-  // Loop sampai koneksi berhasil
   while (!client.connected()) {
     Serial.print("Menghubungkan ke MQTT... ");
     if (client.connect("ESP32Client", TOKEN, "")) {
@@ -111,18 +108,13 @@ void loop() {
   Serial.print(" | Atas: "); Serial.print(nilaiAtas);
   Serial.print(" | Bawah: "); Serial.println(nilaiBawah);
 
-  // =====================
-  // Prioritas jika ada cahaya sangat terang (> 4000)
-  // =====================
   if (nilaiKanan > 4000) posisiServo1 = constrain(posisiServo1 - 2, 0, 180);
   else if (nilaiKiri > 4000) posisiServo1 = constrain(posisiServo1 + 2, 0, 180);
 
   if (nilaiAtas > 4000) posisiServo2 = constrain(posisiServo2 - 2, 0, 180);
   else if (nilaiBawah > 4000) posisiServo2 = constrain(posisiServo2 + 2, 0, 180);
 
-  // =====================
-  // Kalau tidak ada yang melebihi 4000, lanjut gerak normal halus
-  // =====================
+
   if (nilaiKanan <= 4000 && nilaiKiri <= 4000) {
     int diff1 = nilaiKanan - nilaiKiri;
     if (diff1 > 20) posisiServo1 -= 5;
@@ -143,11 +135,10 @@ void loop() {
     }
   }
 
-  // Tulis ke servo
   posisiServo1 = constrain(posisiServo1, 0, 180);
   posisiServo2 = constrain(posisiServo2, 0, 180);
 
   updateDashboard((nilaiKiri+nilaiKanan+nilaiAtas+nilaiBawah)/2);
 
-  delay(100);  // Smooth delay
+  delay(100);
 }
