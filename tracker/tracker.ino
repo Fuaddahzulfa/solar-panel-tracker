@@ -57,14 +57,16 @@ void updateDashboard(float sensor_mean) {
   servo1.write(posisiServo1);
   servo2.write(posisiServo2);
 
-  if (update == 0){
-    char payload[100];
-    sprintf(payload, "{\"%s\": %d, \"%s\": %d}, \"%s\": %d", VARIABLE_SERVO_H, posisiServo2, VARIABLE_SERVO_V, posisiServo1, VARIABLE_LDR, sensor_mean);
+  if (update <= 0){
+    String payload = 
+      "{\"" + String(VARIABLE_SERVO_H) + "\": " + String(posisiServo2) + 
+      ", \"" + String(VARIABLE_SERVO_V) + "\": " + String(posisiServo1) + 
+      ", \"" + String(VARIABLE_LDR) + "\": " + String(sensor_mean) + "}";
+    
+    Serial.println(payload);
 
-
-    // Mengirimkan data ke Ubidots
     String topic = "/v1.6/devices/" + String(DEVICE_LABEL);
-    client.publish(topic.c_str(), payload);
+    client.publish(topic.c_str(), payload.c_str());
     update = 30;
   } else update--;
 }
@@ -106,7 +108,8 @@ void loop() {
   Serial.print("Kanan: "); Serial.print(nilaiKanan);
   Serial.print(" | Kiri: "); Serial.print(nilaiKiri);
   Serial.print(" | Atas: "); Serial.print(nilaiAtas);
-  Serial.print(" | Bawah: "); Serial.println(nilaiBawah);
+  Serial.print(" | Bawah: "); Serial.print(nilaiBawah);
+  Serial.print(" | Update: "); Serial.println(update);
 
   if (nilaiKanan > 4000) posisiServo1 = constrain(posisiServo1 - 2, 0, 180);
   else if (nilaiKiri > 4000) posisiServo1 = constrain(posisiServo1 + 2, 0, 180);
@@ -117,11 +120,11 @@ void loop() {
 
   if (nilaiKanan <= 4000 && nilaiKiri <= 4000) {
     int diff1 = nilaiKanan - nilaiKiri;
-    if (diff1 > 20) posisiServo1 -= 5;
-    else if (diff1 < -20) posisiServo1 += 5;
+    if (diff1 > 20) posisiServo1 -= 3;
+    else if (diff1 < -20) posisiServo1 += 3;
     else {
-      if (nilaiKanan > nilaiKiri) posisiServo1 -= 5;
-      else if (nilaiKiri > nilaiKanan) posisiServo1 += 5;
+      if (nilaiKanan > nilaiKiri) posisiServo1 -= 3;
+      else if (nilaiKiri > nilaiKanan) posisiServo1 += 3;
     }
   }
 
@@ -138,7 +141,7 @@ void loop() {
   posisiServo1 = constrain(posisiServo1, 0, 180);
   posisiServo2 = constrain(posisiServo2, 0, 180);
 
-  updateDashboard((nilaiKiri+nilaiKanan+nilaiAtas+nilaiBawah)/2);
+  updateDashboard((nilaiKiri+nilaiKanan+nilaiAtas+nilaiBawah)/4);
 
   delay(100);
 }
