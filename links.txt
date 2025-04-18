@@ -1,1 +1,0 @@
-Streamlit App: https://solar-panel-tracker.streamlit.app/
