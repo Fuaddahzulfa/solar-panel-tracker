@@ -18,13 +18,13 @@ const char* VARIABLE_LDR = "ldr";
 
 // Pin LDR
 int ldrAtas = 33;
-int ldrKanan  = 32;
-int ldrKiri = 34;
-int ldrBawah  = 35;
+int ldrKanan  = 35;
+int ldrKiri = 32;
+int ldrBawah  = 34;
 
 // Servo
-int pinServo1 = 25;  // MG90S
-int pinServo2 = 26;  // MG996R
+int pinServo1 = 25;
+int pinServo2 = 26;
 
 Servo servo1;
 Servo servo2;
@@ -105,10 +105,10 @@ void loop() {
   int nilaiKiri  = analogRead(ldrKiri);
 
   Serial.println("---- LDR Values ----");
-  Serial.print("Kanan: "); Serial.print(nilaiKanan);
-  Serial.print(" | Kiri: "); Serial.print(nilaiKiri);
-  Serial.print(" | Atas: "); Serial.print(nilaiAtas);
-  Serial.print(" | Bawah: "); Serial.print(nilaiBawah);
+  Serial.print("Atas: "); Serial.print(nilaiKanan);
+  Serial.print(" | Bawah: "); Serial.print(nilaiKiri);
+  Serial.print(" | Kanan: "); Serial.print(nilaiAtas);
+  Serial.print(" | Kiri: "); Serial.print(nilaiBawah);
   Serial.print(" | Update: "); Serial.println(update);
 
   if (nilaiKanan > 4000) posisiServo1 = constrain(posisiServo1 - 2, 0, 180);
@@ -120,11 +120,11 @@ void loop() {
 
   if (nilaiKanan <= 4000 && nilaiKiri <= 4000) {
     int diff1 = nilaiKanan - nilaiKiri;
-    if (diff1 > 20) posisiServo1 -= 3;
-    else if (diff1 < -20) posisiServo1 += 3;
+    if (diff1 > 50) posisiServo1 -= 5;
+    else if (diff1 < -50) posisiServo1 += 5;
     else {
-      if (nilaiKanan > nilaiKiri) posisiServo1 -= 3;
-      else if (nilaiKiri > nilaiKanan) posisiServo1 += 3;
+      if (nilaiKanan > nilaiKiri) posisiServo1 -= 5;
+      else if (nilaiKiri > nilaiKanan) posisiServo1 += 5;
     }
   }
 
