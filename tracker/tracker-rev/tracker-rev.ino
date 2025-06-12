@@ -18,9 +18,9 @@ const char* VARIABLE_LDR = "ldr";
 
 // Pin LDR
 int ldrAtas = 34;
-int ldrKanan  = 35;
-int ldrKiri = 32;
-int ldrBawah  = 33;
+int ldrKanan = 32;
+int ldrKiri = 35;
+int ldrBawah = 33;
 
 // Servo
 int pinServo1 = 25;
@@ -37,12 +37,17 @@ PubSubClient client(wifiClient);
 
 int update = 0;
 
+// Parameter untuk pergerakan halus
+const int TOLERANCE = 150;    // Toleransi perbedaan sensor
+const int STEP_SMALL = 5;     // Langkah kecil
+const int STEP_MEDIUM = 10;    // Langkah sedang
+const int STEP_LARGE = 15;     // Langkah besar
+
 void reconnect() {
   while (!client.connected()) {
     Serial.print("Menghubungkan ke MQTT... ");
     if (client.connect("ESP32Client", TOKEN, "")) {
       Serial.println("terhubung!");
-
     } else {
       Serial.print("gagal, rc=");
       Serial.print(client.state());
@@ -53,11 +58,7 @@ void reconnect() {
 }
 
 void updateDashboard(float sensor_mean) {
-  // Gerakkan servo ke posisi yang sesuai
-  servo1.write(posisiServo1);
-  servo2.write(posisiServo2);
-
-  if (update <= 0){
+  if (update <= 0) {
     String payload = 
       "{\"" + String(VARIABLE_SERVO_H) + "\": " + String(posisiServo2) + 
       ", \"" + String(VARIABLE_SERVO_V) + "\": " + String(posisiServo1) + 
@@ -67,17 +68,20 @@ void updateDashboard(float sensor_mean) {
 
     String topic = "/v1.6/devices/" + String(DEVICE_LABEL);
     client.publish(topic.c_str(), payload.c_str());
-    update = 30;
-  } else update--;
+    update = 50; // Update setiap 5 detik
+  } else {
+    update--;
+  }
 }
 
-
 void setup() {
-  Serial.begin( 115200);
+  Serial.begin(115200);
+  
   servo1.attach(pinServo1);
   servo2.attach(pinServo2);
   servo1.write(posisiServo1);
   servo2.write(posisiServo2);
+  delay(500);
 
   // Koneksi ke WiFi
   WiFi.begin(ssid, password);
@@ -90,6 +94,8 @@ void setup() {
 
   // Set MQTT server dan port
   client.setServer(mqtt_server, mqtt_port);
+  
+  Serial.println("Solar Panel Tracker siap!");
 }
 
 void loop() {
@@ -100,48 +106,66 @@ void loop() {
 
   // Baca nilai LDR
   int nilaiKanan = analogRead(ldrKanan);
-  int nilaiAtas  = analogRead(ldrAtas);
+  int nilaiAtas = analogRead(ldrAtas);
   int nilaiBawah = analogRead(ldrBawah);
-  int nilaiKiri  = analogRead(ldrKiri);
+  int nilaiKiri = analogRead(ldrKiri);
 
   Serial.println("---- LDR Values ----");
   Serial.print("Atas: "); Serial.print(nilaiAtas);
   Serial.print(" | Bawah: "); Serial.print(nilaiBawah);
   Serial.print(" | Kanan: "); Serial.print(nilaiKanan);
   Serial.print(" | Kiri: "); Serial.print(nilaiKiri);
+  Serial.print(" | Servo1: "); Serial.print(posisiServo1);
+  Serial.print(" | Servo2: "); Serial.print(posisiServo2);
   Serial.print(" | Update: "); Serial.println(update);
 
-  if (nilaiKanan > 4000) posisiServo1 = constrain(posisiServo1 - 2, 0, 180);
-  else if (nilaiKiri > 4000) posisiServo1 = constrain(posisiServo1 + 2, 0, 180);
-
-  if (nilaiAtas > 4000) posisiServo2 = constrain(posisiServo2 - 2, 0, 180);
-  else if (nilaiBawah > 4000) posisiServo2 = constrain(posisiServo2 + 2, 0, 180);
-
-
-  if (nilaiKanan <= 4000 && nilaiKiri <= 4000) {
-    int diff1 = nilaiKanan - nilaiKiri;
-    if (diff1 > 50) posisiServo1 -= 5;
-    else if (diff1 < -50) posisiServo1 += 5;
-    else {
-      if (nilaiKanan > nilaiKiri) posisiServo1 -= 5;
-      else if (nilaiKiri > nilaiKanan) posisiServo1 += 5;
+  // Tracking horizontal (servo1) - kiri/kanan
+  int diffHorizontal = nilaiKanan - nilaiKiri;
+  
+  if (abs(diffHorizontal) > TOLERANCE) {
+    int step = STEP_SMALL;
+    
+    // Tentukan ukuran langkah berdasarkan perbedaan
+    if (abs(diffHorizontal) > 500) step = STEP_LARGE;
+    else if (abs(diffHorizontal) > 300) step = STEP_MEDIUM;
+    
+    step += 5;
+    
+    if (diffHorizontal > 0) {
+      // Kanan lebih terang, putar ke kanan
+      posisiServo1 = constrain(posisiServo1 + step, 0, 180);
+    } else {
+      // Kiri lebih terang, putar ke kiri  
+      posisiServo1 = constrain(posisiServo1 - step, 0, 180);
     }
   }
 
-  if (nilaiAtas <= 4000 && nilaiBawah <= 4000) {
-    int diff2 = nilaiAtas - nilaiBawah;
-    if (diff2 > 20) posisiServo2 -= 10;
-    else if (diff2 < -20) posisiServo2 += 10;
-    else {
-      if (nilaiAtas > nilaiBawah) posisiServo2 -= 10;
-      else if (nilaiBawah > nilaiAtas) posisiServo2 += 10;
+  // Tracking vertikal (servo2) - atas/bawah
+  int diffVertikal = nilaiAtas - nilaiBawah;
+  
+  if (abs(diffVertikal) > TOLERANCE) {
+    int step = STEP_SMALL;
+    
+    // Tentukan ukuran langkah berdasarkan perbedaan
+    if (abs(diffVertikal) > 500) step = STEP_LARGE;
+    else if (abs(diffVertikal) > 300) step = STEP_MEDIUM;
+    
+    if (diffVertikal > 0) {
+      // Atas lebih terang, putar ke atas
+      posisiServo2 = constrain(posisiServo2 - step, 0, 180);
+    } else {
+      // Bawah lebih terang, putar ke bawah
+      posisiServo2 = constrain(posisiServo2 + step, 0, 180);
     }
   }
 
-  posisiServo1 = constrain(posisiServo1, 0, 180);
-  posisiServo2 = constrain(posisiServo2, 0, 180);
+  // Gerakkan servo ke posisi baru
+  servo1.write(posisiServo1);
+  servo2.write(posisiServo2);
 
-  updateDashboard((nilaiKiri+nilaiKanan+nilaiAtas+nilaiBawah)/4);
+  // Update dashboard
+  float sensor_mean = (nilaiKiri + nilaiKanan + nilaiAtas + nilaiBawah) / 4.0;
+  updateDashboard(sensor_mean);
 
-  delay(100);
+  delay(150); // Delay yang cukup untuk pergerakan halus
 }
