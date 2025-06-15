@@ -17,10 +17,10 @@ const char* VARIABLE_SERVO_V = "servo_v";
 const char* VARIABLE_LDR = "ldr";
 
 // Pin LDR
-int ldrAtas = 34;
-int ldrKanan = 32;
-int ldrKiri = 35;
-int ldrBawah = 33;
+int ldrAtas = 35;
+int ldrKanan = 33;
+int ldrKiri = 34;
+int ldrBawah = 32;
 
 // Servo
 int pinServo1 = 25;
@@ -76,6 +76,10 @@ void updateDashboard(float sensor_mean) {
 
 void setup() {
   Serial.begin(115200);
+
+  pinMode(18, OUTPUT);
+  pinMode(19, OUTPUT);
+  pinMode(21, OUTPUT);
   
   servo1.attach(pinServo1);
   servo2.attach(pinServo2);
@@ -103,6 +107,14 @@ void loop() {
     reconnect();
   }
   client.loop();
+
+  digitalWrite(18, LOW);
+  digitalWrite(19, LOW);
+  digitalWrite(21, LOW);
+
+  int pinLed = 18+(update % 3);
+
+  digitalWrite(pinLed == 20? 21:pinLed, HIGH);
 
   // Baca nilai LDR
   int nilaiKanan = analogRead(ldrKanan);

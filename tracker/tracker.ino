@@ -17,10 +17,10 @@ const char* VARIABLE_SERVO_V = "servo_v";
 const char* VARIABLE_LDR = "ldr";
 
 // Pin LDR
-int ldrAtas = 34;
-int ldrKanan  = 35;
-int ldrKiri = 32;
-int ldrBawah  = 33;
+int ldrAtas = 35;
+int ldrKanan = 34;
+int ldrKiri = 33;
+int ldrBawah = 32;
 
 // Servo
 int pinServo1 = 25;
@@ -29,8 +29,8 @@ int pinServo2 = 26;
 Servo servo1;
 Servo servo2;
 
-int posisiServo1 = 90;
-int posisiServo2 = 90;
+int posisiServo1 = 0;
+int posisiServo2 = 0;
 
 WiFiClient wifiClient;
 PubSubClient client(wifiClient);
