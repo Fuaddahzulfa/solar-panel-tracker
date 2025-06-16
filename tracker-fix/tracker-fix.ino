@@ -2,8 +2,8 @@
 #include <PubSubClient.h>
 #include <ESP32Servo.h>
 
-const char* ssid = "Redmi Note 5";
-const char* password = "1sampek8";
+const char* ssid = "Tracker";
+const char* password = "rplmaalma";
 
 // Ubidots MQTT broker
 const char* mqtt_server = "industrial.api.ubidots.com";
@@ -38,10 +38,10 @@ PubSubClient client(wifiClient);
 int update = 0;
 
 // Parameter untuk pergerakan halus
-const int TOLERANCE_HIGH = 100;   // Toleransi perbedaan sensor
-const int STEP_SMALL = 5;    // Langkah kecil
-const int STEP_MEDIUM = 10;  // Langkah sedang
-const int STEP_LARGE = 15;   // Langkah besar
+const int TOLERANCE = 50;   // Toleransi perbedaan sensor
+const int STEP_SMALL = 3;   // Langkah kecil
+const int STEP_MEDIUM = 7;  // Langkah sedang
+const int STEP_LARGE = 10;  // Langkah besar
 
 void reconnect() {
   while (!client.connected()) {
@@ -59,6 +59,9 @@ void reconnect() {
 
 void updateDashboard(float sensor_mean) {
   if (update <= 0) {
+    if (!client.connected()) {
+      reconnect();
+    }
     String payload =
       "{\"" + String(VARIABLE_SERVO_H) + "\": " + String(posisiServo2) + ", \"" + String(VARIABLE_SERVO_V) + "\": " + String(posisiServo1) + ", \"" + String(VARIABLE_LDR) + "\": " + String(sensor_mean) + "}";
 
@@ -101,11 +104,6 @@ void setup() {
 }
 
 void loop() {
-  if (!client.connected()) {
-    reconnect();
-  }
-  client.loop();
-
   digitalWrite(18, LOW);
   digitalWrite(19, LOW);
   digitalWrite(21, LOW);
@@ -141,7 +139,7 @@ void loop() {
   int stepH = hitungStep(diffHorizontal);
 
   if (stepH > 0) {
-    posisiServo1 = constrain(posisiServo1 + (diffHorizontal > 0 ? stepH : -stepH), 0, 180);
+    posisiServo1 = constrain(posisiServo1 + (diffHorizontal > 0 ? stepH : -stepH), 0, 179);
   }
 
   // Vertikal
@@ -149,7 +147,7 @@ void loop() {
   int stepV = hitungStep(diffVertikal);
 
   if (stepV > 0) {
-    posisiServo2 = constrain(posisiServo2 + (diffVertikal > 0 ? -stepV : stepV), 0, 180);
+    posisiServo2 = constrain(posisiServo2 + (diffVertikal > 0 ? -stepV : stepV), 0, 179);
   }
 
   // Gerakkan servo ke posisi baru
@@ -160,13 +158,13 @@ void loop() {
   float sensor_mean = (nilaiKiri + nilaiKanan + nilaiAtas + nilaiBawah) / 4.0;
   updateDashboard(sensor_mean);
 
-  delay(150);  // Delay yang cukup untuk pergerakan halus
+  delay(100);  // Delay yang cukup untuk pergerakan halus
 }
 
 int hitungStep(int selisih) {
   int selisihAbs = abs(selisih);
-  if (selisihAbs > 500) return STEP_LARGE;
-  else if (selisihAbs > 300) return STEP_MEDIUM;
-  else if (selisihAbs > TOLERANCE_HIGH) return STEP_SMALL;
+  if (selisihAbs > TOLERANCE * 3) return STEP_LARGE;
+  else if (selisihAbs > TOLERANCE * 2) return STEP_MEDIUM;
+  else if (selisihAbs > TOLERANCE) return STEP_SMALL;
   else return 0;  // Tidak bergerak
 }
