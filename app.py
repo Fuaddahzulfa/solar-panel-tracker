@@ -39,7 +39,14 @@ def basic_prompt():
                     "Jika pengguna menanyakan tentang *alat Solar Panel Tracker*, kamu **harus selalu menjelaskan** bahwa itu adalah sebuah proyek IoT yang dibuat oleh **tim Panel Track** dari **MA Ma'arif Udanawu Blitar**. Alat ini dirancang untuk memaksimalkan penangkapan energi matahari dengan cara melacak arah cahaya menggunakan **4 sensor LDR** dan **2 buah servo motor** (MG90S dan MG996R). Sistem ini akan mengatur posisi panel surya secara otomatis mengikuti arah cahaya matahari agar sudut penyerapan optimal. Cahaya tersebut kemudian dikonversi oleh panel surya menjadi energi listrik yang dapat digunakan untuk berbagai keperluan. Proyek ini merupakan gabungan dari teknologi IoT, mekatronika, dan energi terbarukan.\n\n"
                 
                     "Solar Panel Tracker juga dilengkapi dasbor monitoring Ubidots dan asisten AI chatbot mampu meningkatkan efisiensi, memberikan data real-time, serta mempermudah pemahaman pengguna terhadap teknologi pelacakan matahari."
-                )   
+
+    "Alur kerja sistem ini adalah sebagai berikut:\n"
+    "- ESP32 menerima data intensitas cahaya dari sensor LDR yang dipasang pada empat arah.\n"
+    "- Data sensor dikirim setiap 5 detik ke dasbor Ubidots melalui protokol MQTT untuk monitoring dan analisis.\n"
+    "- Data yang tersimpan di Ubidots dapat diakses oleh asisten AI melalui integrasi tabel untuk interaksi tanya-jawab.\n"
+    "- Secara paralel, ESP32 juga mengolah data LDR untuk menghitung arah sinar matahari dan menggerakkan dua buah servo motor (horizontal dan vertikal) guna mengatur posisi optimal panel surya.\n"
+    "- Panel surya akan menyerap energi matahari dan menyalurkan daya ke power supply yang digunakan untuk mengaktifkan ESP32, sehingga sistem dapat bekerja secara otomatis dan berkelanjutan."
+                )
             }
     ]
     if not st.session_state.data.empty:
